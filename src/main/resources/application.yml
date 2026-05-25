@@ -1,0 +1,73 @@
+spring:
+  application:
+    name: enterprise-creditlens-scheduler
+  quartz:
+    job-store-type: memory
+    properties:
+      org.quartz.threadPool.threadCount: 5
+  mail:
+    host: smtp.company.com
+    port: 25
+    test-connection: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+security:
+  ldap:
+    enabled: false
+    url: ldap://ad.company.com:389
+    base-dn: DC=company,DC=com
+    user-dn-pattern: "sAMAccountName={0}"
+    service-account-group: SA-SVC-creditlens-scheduler
+
+scheduler:
+  thread-pool-size: 5
+  startup-validation:
+    smtp-test-email-enabled: false
+    smtp-test-recipient: itsupport@company.com
+  jobs:
+    - name: customer-report
+      enabled: true
+      cron: "0 0 8 * * ?"
+      credential-target: "CreditLens/customer-report"
+      authentication:
+        endpoint: "https://creditlens-host/api/security/authenticate"
+      report:
+        endpoint: "https://creditlens-host/api/reports/generate"
+        parent-file-path: "reports"
+        file-path: "customer"
+        file-name: "customer-report"
+        file-type: "xlsx"
+        generated-report-base-path: "D:/MinioRepository/creditlensstorage/tenant/documents"
+      request:
+        timeout-seconds: 60
+      retry:
+        max-attempts: 5
+        initial-delay-ms: 2000
+        multiplier: 2.0
+      validation:
+        wait-before-validation-seconds: 10
+        max-search-window-seconds: 120
+        minimum-file-size-kb: 5
+        fail-if-multiple-files-found: true
+      report-input:
+        report-id: "REPORT_001"
+        is-portfolio: false
+        report-params: []
+      notifications:
+        business-emails:
+          - business@company.com
+        it-support-emails:
+          - itsupport@company.com

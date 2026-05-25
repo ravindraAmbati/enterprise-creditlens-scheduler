@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<body>
+<h2>CreditLens Scheduler Failure</h2>
+<table>
+    <tr><th align="left">Job Name</th><td th:text="${job.name}"></td></tr>
+    <tr><th align="left">Error Details</th><td th:text="${errorDetails}"></td></tr>
+    <tr><th align="left">Retry Count</th><td th:text="${retryCount}"></td></tr>
+    <tr><th align="left">Correlation ID</th><td th:text="${correlationId}"></td></tr>
+    <tr><th align="left">Failure Timestamp</th><td th:text="${failureTimestamp}"></td></tr>
+    <tr><th align="left">Server Name</th><td th:text="${serverName}"></td></tr>
+    <tr><th align="left">Search Path</th><td th:text="${searchPath}"></td></tr>
+    <tr><th align="left">Validation Window</th><td th:text="${validationWindow} + ' seconds'"></td></tr>
+    <tr><th align="left">Failed Stage</th><td th:text="${failedStage}"></td></tr>
+</table>
+<p th:text="${footer}"></p>
+</body>
+</html>

@@ -25,6 +25,7 @@ springdoc:
     path: /swagger-ui.html
 
 security:
+  service-account-authentication-enabled: false
   ldap:
     enabled: false
     url: ldap://ad.company.com:389

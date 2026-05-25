@@ -1,0 +1,4 @@
+security:
+  service-account-authentication-enabled: true
+  ldap:
+    enabled: true

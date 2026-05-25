@@ -3,6 +3,7 @@ package com.company.creditscheduler.security;
 import com.company.creditscheduler.config.SecurityProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -24,12 +25,20 @@ public class SecurityConfig {
 
     @Bean
     SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
+        if (!securityProperties.isServiceAccountAuthenticationEnabled()) {
+            return http
+                    .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                    .authorizeExchange(exchange -> exchange.anyExchange().permitAll())
+                    .build();
+        }
+
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchange -> exchange
-                        .pathMatchers("/actuator/health").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/actuator/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/jobs", "/jobs/*").permitAll()
                         .pathMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").hasRole("SERVICE_ACCOUNT")
-                        .pathMatchers("/jobs/**", "/actuator/**").hasRole("SERVICE_ACCOUNT")
+                        .pathMatchers(HttpMethod.POST, "/jobs/*/trigger").hasRole("SERVICE_ACCOUNT")
                         .anyExchange().authenticated())
                 .httpBasic(Customizer.withDefaults())
                 .formLogin(Customizer.withDefaults())

@@ -12,6 +12,7 @@ import com.company.creditscheduler.authentication.CredentialProvider;
 import com.company.creditscheduler.authentication.CreditLensAuthenticationClient;
 import com.company.creditscheduler.dto.Credentials;
 import com.company.creditscheduler.metrics.SchedulerMetrics;
+import com.company.creditscheduler.notifications.email.EmailContentRenderer;
 import com.company.creditscheduler.notifications.email.EmailNotificationService;
 import com.company.creditscheduler.notifications.retry.ResilientExecutor;
 import com.company.creditscheduler.reports.discovery.ReportFileDiscoveryService;
@@ -33,7 +34,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.thymeleaf.TemplateEngine;
 
 class CreditLensWorkflowIT {
 
@@ -99,9 +99,11 @@ class CreditLensWorkflowIT {
         var validationService = new ReportFileValidationService(resilientExecutor);
         JavaMailSender mailSender = mock(JavaMailSender.class);
         when(mailSender.createMimeMessage()).thenReturn(new MimeMessage(Session.getInstance(new Properties())));
-        TemplateEngine templateEngine = mock(TemplateEngine.class);
-        when(templateEngine.process(any(String.class), any())).thenReturn("<html>ok</html>");
-        var emailService = new EmailNotificationService(mailSender, templateEngine, resilientExecutor, discoveryService);
+        var emailService = new EmailNotificationService(
+                mailSender,
+                new EmailContentRenderer(),
+                resilientExecutor,
+                discoveryService);
         var metrics = new SchedulerMetrics(new SimpleMeterRegistry());
         var executionService = new ReportExecutionService(
                 authenticationClient,

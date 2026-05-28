@@ -1,5 +1,5 @@
 param(
-    [string]$JavaHome = "C:\softwares\jdk-21",
+    [string]$JavaHome = "C:\softwares\jdk-17",
     [string]$JarPath = "target\enterprise-creditlens-scheduler.jar",
     [string]$PidFile = "app.pid",
     [string]$Profile = "",

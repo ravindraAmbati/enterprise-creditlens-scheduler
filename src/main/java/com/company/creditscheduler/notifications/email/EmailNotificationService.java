@@ -6,13 +6,9 @@ import com.company.creditscheduler.notifications.retry.ResilientExecutor;
 import com.company.creditscheduler.reports.discovery.ReportFileDiscoveryService;
 import java.net.InetAddress;
 import java.time.Instant;
-import java.util.Map;
-import static java.util.Map.entry;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
 
 @Service
 public class EmailNotificationService {
@@ -20,18 +16,18 @@ public class EmailNotificationService {
     private static final String FOOTER = "This is an automated system-generated email. Please do not reply.";
 
     private final JavaMailSender mailSender;
-    private final TemplateEngine templateEngine;
+    private final EmailContentRenderer emailContentRenderer;
     private final ResilientExecutor resilientExecutor;
     private final ReportFileDiscoveryService discoveryService;
 
     public EmailNotificationService(
             JavaMailSender mailSender,
-            TemplateEngine templateEngine,
+            EmailContentRenderer emailContentRenderer,
             ResilientExecutor resilientExecutor,
             ReportFileDiscoveryService discoveryService
     ) {
         this.mailSender = mailSender;
-        this.templateEngine = templateEngine;
+        this.emailContentRenderer = emailContentRenderer;
         this.resilientExecutor = resilientExecutor;
         this.discoveryService = discoveryService;
     }
@@ -48,14 +44,7 @@ public class EmailNotificationService {
         resilientExecutor.executeVoid("smtp-email-sending", job, correlationId, () -> send(
                 job.getNotifications().getBusinessEmails().toArray(String[]::new),
                 "CreditLens report generated: " + job.getName(),
-                "business-success",
-                Map.of(
-                        "job", job,
-                        "reportFile", reportFile,
-                        "executionId", executionId,
-                        "correlationId", correlationId,
-                        "footer", FOOTER
-                )));
+                emailContentRenderer.businessSuccess(job, reportFile, executionId, correlationId, FOOTER)));
     }
 
     public void sendItFailure(
@@ -71,26 +60,21 @@ public class EmailNotificationService {
         resilientExecutor.executeVoid("smtp-email-sending", job, correlationId, () -> send(
                 job.getNotifications().getItSupportEmails().toArray(String[]::new),
                 "CreditLens scheduler failure: " + job.getName(),
-                "it-failure",
-                Map.ofEntries(
-                        entry("job", job),
-                        entry("failedStage", failedStage),
-                        entry("errorDetails", error.getMessage() == null ? error.toString() : error.getMessage()),
-                        entry("retryCount", job.getRetry().getMaxAttempts()),
-                        entry("executionId", executionId),
-                        entry("correlationId", correlationId),
-                        entry("failureTimestamp", Instant.now()),
-                        entry("serverName", InetAddress.getLocalHost().getHostName()),
-                        entry("searchPath", discoveryService.searchPath(job)),
-                        entry("validationWindow", job.getValidation().getMaxSearchWindowSeconds()),
-                        entry("footer", FOOTER)
-                )));
+                emailContentRenderer.itFailure(
+                        job,
+                        failedStage,
+                        error.getMessage() == null ? error.toString() : error.getMessage(),
+                        job.getRetry().getMaxAttempts(),
+                        executionId,
+                        correlationId,
+                        Instant.now(),
+                        InetAddress.getLocalHost().getHostName(),
+                        discoveryService.searchPath(job),
+                        job.getValidation().getMaxSearchWindowSeconds(),
+                        FOOTER)));
     }
 
-    private void send(String[] recipients, String subject, String template, Map<String, Object> variables) throws Exception {
-        Context context = new Context();
-        context.setVariables(variables);
-        String html = templateEngine.process("email/" + template, context);
+    private void send(String[] recipients, String subject, String html) throws Exception {
         var message = mailSender.createMimeMessage();
         var helper = new MimeMessageHelper(message, true);
         helper.setTo(recipients);

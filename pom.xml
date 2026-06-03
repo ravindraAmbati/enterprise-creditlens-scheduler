@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>11</java.version>
-        <resilience4j.version>2.2.0</resilience4j.version>
+        <resilience4j.version>1.7.1</resilience4j.version>
     </properties>
 
     <dependencies>

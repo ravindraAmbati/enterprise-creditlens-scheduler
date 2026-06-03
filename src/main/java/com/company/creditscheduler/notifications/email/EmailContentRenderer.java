@@ -58,18 +58,16 @@ public class EmailContentRenderer {
     }
 
     private String page(String title, String rows, String footer) {
-        return """
-                <!doctype html>
-                <html lang="en">
-                <body>
-                <h2>%s</h2>
-                <table>
-                %s
-                </table>
-                <p>%s</p>
-                </body>
-                </html>
-                """.formatted(escape(title), rows, escape(footer));
+        return "<!doctype html>\n"
+                + "<html lang=\"en\">\n"
+                + "<body>\n"
+                + "<h2>" + escape(title) + "</h2>\n"
+                + "<table>\n"
+                + rows
+                + "</table>\n"
+                + "<p>" + escape(footer) + "</p>\n"
+                + "</body>\n"
+                + "</html>\n";
     }
 
     private String row(String label, Object value) {

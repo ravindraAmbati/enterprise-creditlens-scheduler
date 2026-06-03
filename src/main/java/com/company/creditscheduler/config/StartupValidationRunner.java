@@ -76,7 +76,8 @@ public class StartupValidationRunner implements CommandLineRunner {
     }
 
     private void validateSmtp() {
-        if (mailSender instanceof JavaMailSenderImpl impl) {
+        if (mailSender instanceof JavaMailSenderImpl) {
+            JavaMailSenderImpl impl = (JavaMailSenderImpl) mailSender;
             try {
                 impl.testConnection();
             } catch (Exception exception) {

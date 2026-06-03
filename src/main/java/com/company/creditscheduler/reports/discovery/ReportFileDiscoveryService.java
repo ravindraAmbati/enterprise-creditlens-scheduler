@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -41,7 +42,7 @@ public class ReportFileDiscoveryService {
                     .filter(path -> path.getFileName().toString().toLowerCase().endsWith(expectedExtension))
                     .filter(path -> isWithinWindow(path, minModifiedTime, maxModifiedTime))
                     .sorted(Comparator.comparing(this::lastModified).reversed())
-                    .toList();
+                    .collect(Collectors.toList());
         }
 
         if (candidates.isEmpty()) {

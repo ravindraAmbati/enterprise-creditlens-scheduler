@@ -18,8 +18,8 @@ import com.company.creditscheduler.notifications.retry.ResilientExecutor;
 import com.company.creditscheduler.reports.discovery.ReportFileDiscoveryService;
 import com.company.creditscheduler.reports.validation.ReportFileValidationService;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import jakarta.mail.Session;
-import jakarta.mail.internet.MimeMessage;
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -60,6 +60,7 @@ class CreditLensWorkflowIT {
         job.getAuthentication().setEndpoint(server.url("/api/security/authenticate").toString());
         job.getReport().setEndpoint(server.url("/api/reports/generate").toString().replaceAll("/$", ""));
         job.getRetry().setMaxAttempts(1);
+        job.getRequest().setTimeoutSeconds(10);
         job.getValidation().setWaitBeforeValidationSeconds(0);
         job.getValidation().setMinimumFileSizeKb(0);
 
@@ -69,9 +70,7 @@ class CreditLensWorkflowIT {
             public MockResponse dispatch(RecordedRequest request) {
                 try {
                     if ("/api/security/authenticate".equals(request.getPath())) {
-                        return json("""
-                                {"payLoad":{"user":{"UserId":"clapi"},"token":"test-token","devMode":false},"status":null}
-                                """);
+                        return json("{\"payLoad\":{\"user\":{\"UserId\":\"clapi\"},\"token\":\"test-token\",\"devMode\":false},\"status\":null}");
                     }
                     if ("/api/reports/generate/customer/customer-report/xlsx".equals(request.getPath())) {
                         Files.createDirectories(expectedOutput.getParent());

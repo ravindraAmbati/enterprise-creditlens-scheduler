@@ -43,7 +43,7 @@ Main technologies:
 
 | Area | Technology |
 |---|---|
-| Runtime | Java 17 |
+| Runtime | Java 11 |
 | Framework | Spring Boot 3.x |
 | Scheduler | Quartz |
 | API client | Spring WebClient |
@@ -66,7 +66,7 @@ Install or prepare the following on the Windows server:
 
 | Requirement | Notes |
 |---|---|
-| JDK 17 | Example path: `C:\softwares\jdk-17` |
+| JDK 11 | Example path: `C:\softwares\jdk-11` |
 | Maven 3.8+ | Required to build on the server; not required if deploying a prebuilt jar |
 | Network access to CreditLens | Auth and report generation API endpoints must be reachable |
 | Access to generated report folder | The service account running the app must read the CreditLens/MinIO repository path |
@@ -74,17 +74,17 @@ Install or prepare the following on the Windows server:
 | Windows Credential Manager entry | One credential per configured job or shared target |
 | Service account | Recommended name: `SA-SVC-creditlens-scheduler` |
 
-Set Java 17 in the current PowerShell session:
+Set Java 11 in the current PowerShell session:
 
 ```powershell
-$env:JAVA_HOME="C:\softwares\jdk-17"
+$env:JAVA_HOME="C:\softwares\jdk-11"
 $env:Path="$env:JAVA_HOME\bin;$env:Path"
 
 java -version
 mvn -version
 ```
 
-Expected Java output should show version `17`.
+Expected Java output should show version `11`.
 
 ## 3. Configuration Files and Profiles
 
@@ -298,7 +298,7 @@ cd C:\workspace\codex
 Set Java:
 
 ```powershell
-$env:JAVA_HOME="C:\softwares\jdk-17"
+$env:JAVA_HOME="C:\softwares\jdk-11"
 $env:Path="$env:JAVA_HOME\bin;$env:Path"
 ```
 
@@ -362,7 +362,7 @@ Script defaults:
 
 | Parameter | Default |
 |---|---|
-| `JavaHome` | `C:\softwares\jdk-17` |
+| `JavaHome` | `C:\softwares\jdk-11` |
 | `JarPath` | `target\enterprise-creditlens-scheduler.jar` |
 | `PidFile` | `app.pid` |
 | `OutLog` | `logs\app.out.log` |
@@ -372,7 +372,7 @@ Override example:
 
 ```powershell
 .\scripts\start-app.ps1 `
-  -JavaHome "C:\softwares\jdk-17" `
+  -JavaHome "C:\softwares\jdk-11" `
   -JarPath "target\enterprise-creditlens-scheduler.jar" `
   -Profile "prod"
 ```
@@ -401,7 +401,7 @@ Create `enterprise-creditlens-scheduler.xml` next to the WinSW executable:
   <name>Enterprise CreditLens Scheduler</name>
   <description>Schedules and monitors CreditLens report generation.</description>
 
-  <executable>C:\softwares\jdk-17\bin\java.exe</executable>
+  <executable>C:\softwares\jdk-11\bin\java.exe</executable>
   <arguments>-jar C:\apps\enterprise-creditlens-scheduler\enterprise-creditlens-scheduler.jar --spring.profiles.active=prod</arguments>
 
   <log mode="roll-by-size">
@@ -446,7 +446,7 @@ Uninstall service:
 
 Production checklist before installing:
 
-- JDK 17 is installed on the server.
+- JDK 11 is installed on the server.
 - The jar exists in the service folder.
 - The Windows service account has read access to the generated report repository.
 - The Windows service account has access to the Credential Manager entries.
@@ -670,7 +670,7 @@ Check:
 
 ## Quick Production Deployment Checklist
 
-1. Build with Java 17:
+1. Build with Java 11:
 
    ```powershell
    mvn clean package

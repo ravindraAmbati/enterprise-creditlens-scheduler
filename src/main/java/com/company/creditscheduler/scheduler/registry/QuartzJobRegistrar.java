@@ -2,7 +2,7 @@ package com.company.creditscheduler.scheduler.registry;
 
 import com.company.creditscheduler.config.SchedulerProperties;
 import com.company.creditscheduler.scheduler.jobs.CreditLensReportJob;
-import jakarta.annotation.PostConstruct;
+import javax.annotation.PostConstruct;
 import org.quartz.CronScheduleBuilder;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;

@@ -121,6 +121,7 @@ class StartupValidationRunnerTest {
                 schedulerProperties,
                 securityProperties,
                 mailSender,
+                false,
                 credentialProvider,
                 resilientExecutor);
     }

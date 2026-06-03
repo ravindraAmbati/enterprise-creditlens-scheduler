@@ -44,7 +44,7 @@ Main technologies:
 | Area | Technology |
 |---|---|
 | Runtime | Java 11 |
-| Framework | Spring Boot 3.x |
+| Framework | Spring Boot 2.7.x |
 | Scheduler | Quartz |
 | API client | Spring WebClient |
 | Retry | Resilience4j |
@@ -321,6 +321,200 @@ target/enterprise-creditlens-scheduler.jar
 ```
 
 ## 7. Run on Windows as a Java Process
+
+### Start Locally With `java -jar`
+
+Use the `nonprod` profile for local development. In this profile, the sample job is disabled and local health checks do not require the placeholder SMTP host to resolve.
+
+From the project root:
+
+```powershell
+cd C:\workspace\codex
+```
+
+Build the jar:
+
+```powershell
+mvn clean package
+```
+
+Start with packaged configuration:
+
+```powershell
+java -jar target\enterprise-creditlens-scheduler.jar --spring.profiles.active=nonprod
+```
+
+Health check:
+
+```powershell
+curl http://localhost:8080/actuator/health
+```
+
+Expected response:
+
+```json
+{
+  "status": "UP"
+}
+```
+
+Swagger UI:
+
+```text
+http://localhost:8080/swagger-ui.html
+```
+
+Stop the local app from another PowerShell window:
+
+```powershell
+Get-Process java | Stop-Process
+```
+
+If more than one Java process is running, stop only the process whose command line contains `enterprise-creditlens-scheduler.jar`:
+
+```powershell
+Get-CimInstance Win32_Process |
+  Where-Object { $_.Name -eq "java.exe" -and $_.CommandLine -like "*enterprise-creditlens-scheduler.jar*" } |
+  ForEach-Object { Stop-Process -Id $_.ProcessId -Force }
+```
+
+### Start Locally With External Config
+
+Use external config when you do not want to edit the packaged `application.yml`, or when each environment has its own server-side configuration file.
+
+Example folder:
+
+```text
+C:\workspace\codex\config\application-local.yml
+```
+
+Start with external config:
+
+```powershell
+java -jar target\enterprise-creditlens-scheduler.jar `
+  --spring.profiles.active=nonprod `
+  --spring.config.additional-location=file:C:/workspace/codex/config/application-local.yml
+```
+
+Alternative: point Spring Boot at a config directory:
+
+```powershell
+java -jar target\enterprise-creditlens-scheduler.jar `
+  --spring.profiles.active=nonprod `
+  --spring.config.additional-location=file:C:/workspace/codex/config/
+```
+
+Use forward slashes in the `file:` URI, or escape backslashes carefully in PowerShell.
+
+Minimal local config example:
+
+```yaml
+spring:
+  mail:
+    host: localhost
+    port: 2525
+    test-connection: false
+
+management:
+  health:
+    mail:
+      enabled: false
+
+security:
+  service-account-authentication-enabled: false
+  ldap:
+    enabled: false
+
+scheduler:
+  startup-validation:
+    smtp-test-email-enabled: false
+  jobs:
+    - name: customer-report
+      enabled: false
+      cron: "0 0 8 * * ?"
+      credential-target: "CreditLens/customer-report"
+      authentication:
+        endpoint: "https://creditlens-host/api/security/authenticate"
+      report:
+        endpoint: "https://creditlens-host/api/reports/generate"
+        parent-file-path: "reports"
+        file-path: "customer"
+        file-name: "customer-report"
+        file-type: "xlsx"
+        generated-report-base-path: "D:/MinioRepository/creditlensstorage/tenant/documents"
+      request:
+        timeout-seconds: 60
+      retry:
+        max-attempts: 5
+        initial-delay-ms: 2000
+        multiplier: 2.0
+      validation:
+        wait-before-validation-seconds: 10
+        max-search-window-seconds: 120
+        minimum-file-size-kb: 5
+        fail-if-multiple-files-found: true
+      report-input:
+        report-id: "REPORT_001"
+        is-portfolio: false
+        report-params: []
+      notifications:
+        business-emails:
+          - business@company.com
+        it-support-emails:
+          - itsupport@company.com
+```
+
+To run an actual local job, set `enabled: true`, update the CreditLens endpoints, create the matching Windows Credential Manager target, and ensure the generated report path is readable.
+
+### Start Locally From IntelliJ IDEA
+
+1. Open IntelliJ IDEA.
+2. Select **File > Open** and choose:
+
+   ```text
+   C:\workspace\codex
+   ```
+
+3. Let IntelliJ import the Maven project.
+4. Configure the JDK:
+
+   ```text
+   File > Project Structure > Project SDK > JDK 11
+   ```
+
+5. Open the main class:
+
+   ```text
+   src/main/java/com/company/creditscheduler/CreditSchedulerApplication.java
+   ```
+
+6. Select **Run > Edit Configurations**.
+7. Add an **Application** configuration:
+
+| Field | Value |
+|---|---|
+| Name | `CreditLens Scheduler - nonprod` |
+| Main class | `com.company.creditscheduler.CreditSchedulerApplication` |
+| JDK | Java 11 |
+| Working directory | `C:\workspace\codex` |
+| VM options | Optional, for example `-Dserver.port=8080` |
+| Program arguments | `--spring.profiles.active=nonprod` |
+
+8. Run the configuration.
+9. Verify:
+
+   ```text
+   http://localhost:8080/actuator/health
+   http://localhost:8080/swagger-ui.html
+   ```
+
+For IntelliJ with external config, use this in **Program arguments**:
+
+```text
+--spring.profiles.active=nonprod --spring.config.additional-location=file:C:/workspace/codex/config/application-local.yml
+```
+
+For debugging, click **Debug** instead of **Run**. Breakpoints can be set in scheduler jobs, report services, file discovery, validation, notification, and controller classes.
 
 The project includes scripts under:
 

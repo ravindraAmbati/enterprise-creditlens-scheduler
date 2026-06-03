@@ -5,6 +5,7 @@ import com.company.creditscheduler.exception.CreditSchedulerException;
 import com.company.creditscheduler.notifications.retry.ResilientExecutor;
 import java.net.URI;
 import org.quartz.CronExpression;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -17,6 +18,7 @@ public class StartupValidationRunner implements CommandLineRunner {
     private final SchedulerProperties schedulerProperties;
     private final SecurityProperties securityProperties;
     private final JavaMailSender mailSender;
+    private final boolean testMailConnection;
     private final CredentialProvider credentialProvider;
     private final ResilientExecutor resilientExecutor;
 
@@ -24,12 +26,14 @@ public class StartupValidationRunner implements CommandLineRunner {
             SchedulerProperties schedulerProperties,
             SecurityProperties securityProperties,
             JavaMailSender mailSender,
+            @Value("${spring.mail.test-connection:false}") boolean testMailConnection,
             CredentialProvider credentialProvider,
             ResilientExecutor resilientExecutor
     ) {
         this.schedulerProperties = schedulerProperties;
         this.securityProperties = securityProperties;
         this.mailSender = mailSender;
+        this.testMailConnection = testMailConnection;
         this.credentialProvider = credentialProvider;
         this.resilientExecutor = resilientExecutor;
     }
@@ -76,7 +80,7 @@ public class StartupValidationRunner implements CommandLineRunner {
     }
 
     private void validateSmtp() {
-        if (mailSender instanceof JavaMailSenderImpl) {
+        if (testMailConnection && mailSender instanceof JavaMailSenderImpl) {
             JavaMailSenderImpl impl = (JavaMailSenderImpl) mailSender;
             try {
                 impl.testConnection();
